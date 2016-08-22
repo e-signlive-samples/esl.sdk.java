@@ -16,6 +16,7 @@ import com.silanis.esl.sdk.TextAnchor;
 import com.silanis.esl.sdk.TextAnchorPosition;
 
 public class DocumentPackageUtils {
+	private static float ESL_SCALE = 1.33333f;
 	
 	private class StrippedPDFPage {
 		private int eSLPageNumber = 0;
@@ -71,10 +72,10 @@ public class DocumentPackageUtils {
 					
 					//We set the signature x-y coordinates by performing a client side extraction using PDFBox
 					TextPosition xyPosition = textAnchorCoordinateExtract(pages, anchorText, position, character, occurrence);
-					float x = xyPosition.getXDirAdj() + xOffset;
-					float charWidth = xyPosition.getWidthDirAdj();
-					float y = xyPosition.getYDirAdj() + yOffset;
-					float charHeight = xyPosition.getHeightDir();
+					float x = xyPosition.getXDirAdj()*ESL_SCALE + xOffset;
+					float charWidth = xyPosition.getWidthDirAdj()*ESL_SCALE;
+					float y = xyPosition.getYDirAdj()*ESL_SCALE + yOffset;
+					float charHeight = xyPosition.getHeightDir()*ESL_SCALE;
 					
 					signature.setWidth(width);
 					signature.setHeight(height);
