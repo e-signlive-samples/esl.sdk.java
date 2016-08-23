@@ -46,13 +46,34 @@ public class DocumentPackageUtilsExample extends SDKSample {
                                         .withOffset( 0, 0 )
                                         .withCharacter( 0 )
                                         .withOccurence( 0 ) ) )
+                        .withSignature(signatureFor( email1 )
+                                .withPositionAnchor( TextAnchorBuilder.newTextAnchor( "BOTTOMLEFT" )
+                                        .atPosition( TextAnchorPosition.BOTTOMLEFT )
+                                        .withSize( FIELD_WIDTH, FIELD_HEIGHT )
+                                        .withOffset( 0, 0 )
+                                        .withCharacter( 0 )
+                                        .withOccurence( 0 ) ) )
+                        .withSignature(signatureFor( email1 )
+                                .withPositionAnchor( TextAnchorBuilder.newTextAnchor( "TOPRIGHT" )
+                                        .atPosition( TextAnchorPosition.TOPRIGHT )
+                                        .withSize( FIELD_WIDTH, FIELD_HEIGHT )
+                                        .withOffset( 0, 0 )
+                                        .withCharacter( 0 )
+                                        .withOccurence( 0 ) ) )
+                        .withSignature(signatureFor( email1 )
+                                .withPositionAnchor( TextAnchorBuilder.newTextAnchor( "TOPLEFT" )
+                                        .atPosition( TextAnchorPosition.TOPLEFT )
+                                        .withSize( FIELD_WIDTH, FIELD_HEIGHT )
+                                        .withOffset( 0, 0 )
+                                        .withCharacter( 0 )
+                                        .withOccurence( 0 ) ) )
                 )
                 .build();
 		
 		DocumentPackageUtils utils = new DocumentPackageUtils();
-		DocumentPackage pkg = utils.convertTextAnchorToXY(superDuperPackage);
+		superDuperPackage = utils.convertTextAnchorToXY(superDuperPackage);
 
-        packageId = eslClient.createPackage( pkg );
+        packageId = eslClient.createPackage( superDuperPackage );
         eslClient.sendPackage( packageId );
 
         retrievedPackage = eslClient.getPackage( packageId );

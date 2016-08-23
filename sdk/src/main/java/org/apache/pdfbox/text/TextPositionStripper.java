@@ -19,6 +19,7 @@ public class TextPositionStripper extends PDFTextStripper
     }
 
     private ArrayList<TextPosition> textPositionDetails = new ArrayList<TextPosition>();
+    private StringBuilder sb = new StringBuilder();
     
     /**
      * Write full TextPosition information
@@ -27,10 +28,17 @@ public class TextPositionStripper extends PDFTextStripper
     protected void writeString(String string, List<TextPosition> textPositions) throws IOException
     {    	
     	textPositionDetails.addAll(textPositions);
+    	for(TextPosition textPosition : textPositions) {
+    		sb.append(textPosition.getUnicode());
+    	}
     	writeString(string);
     }
     
     public ArrayList<TextPosition> getTextPositionDetails() {
 		return textPositionDetails;
 	}
+    
+    public String getUnicodeText(){
+    	return sb.toString();
+    }
 }

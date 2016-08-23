@@ -2,6 +2,7 @@ package com.silanis.esl.sdk.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,7 +17,8 @@ import com.silanis.esl.sdk.TextAnchor;
 import com.silanis.esl.sdk.TextAnchorPosition;
 
 public class DocumentPackageUtils {
-	private static float ESL_SCALE = 1.33333f;
+	protected static final Logger log = Logger.getLogger(DocumentPackageUtils.class.getName());
+	private static float ESL_SCALE = 1.3f;
 	
 	private class StrippedPDFPage {
 		private int eSLPageNumber = 0;
@@ -54,7 +56,8 @@ public class DocumentPackageUtils {
 				for (int i = 1; i <= pdfDocument.getNumberOfPages(); i++) {
 					stripper.setStartPage(i);
 					stripper.setEndPage(i);
-					String text = stripper.getText(pdfDocument);
+					stripper.getText(pdfDocument); //to bootstrap the parsing of the document
+					String text = stripper.getUnicodeText();
 					ArrayList<TextPosition> textPositionDetails = stripper.getTextPositionDetails();
 					StrippedPDFPage page = new StrippedPDFPage(i, text, textPositionDetails);
 					pages.add(page);
@@ -73,35 +76,36 @@ public class DocumentPackageUtils {
 						int yOffset = textAnchor.getYOffset();
 						
 						//We set the signature x-y coordinates by performing a client side extraction using PDFBox
-						TextPosition xyPosition = textAnchorCoordinateExtract(pages, anchorText, position, character, occurrence);
-						float x = xyPosition.getXDirAdj()*ESL_SCALE + xOffset;
-						float charWidth = xyPosition.getWidthDirAdj()*ESL_SCALE;
-						float y = xyPosition.getYDirAdj()*ESL_SCALE + yOffset;
-						float charHeight = xyPosition.getHeightDir()*ESL_SCALE;
+						TextPosition xyPosition = textAnchorCoordinateExtract(pages, anchorText, character, occurrence);
+						float x = xyPosition.getXDirAdj() + xOffset;
+						float charWidth = xyPosition.getWidthDirAdj();
+						float y = xyPosition.getYDirAdj() + yOffset;
+						float charHeight = xyPosition.getHeightDir();
 						
 						signature.setWidth(width);
 						signature.setHeight(height);
 						
 						if(position == TextAnchorPosition.BOTTOMLEFT){
-							signature.setX(x);
-							signature.setY(y+charHeight);
+							signature.setX(x*ESL_SCALE);
+							signature.setY(y*ESL_SCALE);
 						}
 						else if(position == TextAnchorPosition.BOTTOMRIGHT){
-							signature.setX(x+charWidth);
-							signature.setY(y+charHeight);
+							signature.setX((x+charWidth)*ESL_SCALE);
+							signature.setY(y*ESL_SCALE);
 						}
 						else if(position == TextAnchorPosition.TOPLEFT){
-							signature.setX(x);
-							signature.setY(y);
+							signature.setX(x*ESL_SCALE);
+							signature.setY((y-charHeight)*ESL_SCALE);
 						}
 						else {
 							//TextAnchorPosition.TOPRIGHT
-							signature.setX(x+charWidth);
-							signature.setY(y);
+							signature.setX((x+charWidth)*ESL_SCALE);
+							signature.setY((y-charHeight)*ESL_SCALE);
 						}
+						log.fine("position of anchor '"+anchorText+"' for character '"+xyPosition.getUnicode()+"' positionned "+position.toString()+" at (" + signature.getX() +", "+ + signature.getY()+")");
 					}
 					//we remove the eSignLive text anchor
-					textAnchor = null;
+					signature.setTextAnchor(null);
 				}
 				//we disable extraction
 				document.setExtraction(false);
@@ -115,24 +119,19 @@ public class DocumentPackageUtils {
 	}
 	
 	//Get the XY coordinates per text anchor
-	private TextPosition textAnchorCoordinateExtract(ArrayList<StrippedPDFPage> pages, String anchorText, TextAnchorPosition anchorPosition, int character, int occurrence) {
+	private TextPosition textAnchorCoordinateExtract(ArrayList<StrippedPDFPage> pages, String anchorText, int character, int occurrence) {
 		
 		ArrayList<TextPosition> coordinates = new ArrayList<TextPosition>();
 		for(StrippedPDFPage page: pages){
 			Pattern pattern = Pattern.compile(anchorText);
 			Matcher matcher = pattern.matcher(page.getPageOfText());
 			while(matcher.find()){
+				log.fine("found text anchor: "+anchorText);
 				int startIndex = matcher.start();
-				if(anchorPosition == TextAnchorPosition.BOTTOMLEFT || anchorPosition == TextAnchorPosition.TOPLEFT){
-					startIndex = matcher.start();
-				}
-				else { 
-					//this assumes BOTTOMRIGHT OR TOPRIGHT
-					startIndex = matcher.end();
-				}
 				
 				ArrayList<TextPosition> textPositionDetails = page.getTextPositionDetails();
 				TextPosition position = textPositionDetails.get(startIndex+character);
+				log.fine("position of character '"+position.getUnicode()+"' at (" + position.getXDirAdj() +", "+ + position.getYDirAdj()+")");
 				
 				coordinates.add(position);
 			}
