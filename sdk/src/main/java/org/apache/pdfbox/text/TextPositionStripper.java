@@ -27,6 +27,7 @@ public class TextPositionStripper extends PDFTextStripper
     protected void writeString(String string, List<TextPosition> textPositions) throws IOException
     {    	
     	textPositionDetails.addAll(textPositions);
+    	writeString(string);
     }
     
     public ArrayList<TextPosition> getTextPositionDetails() {
