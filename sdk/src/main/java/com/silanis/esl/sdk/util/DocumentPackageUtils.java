@@ -12,15 +12,16 @@ import org.apache.pdfbox.text.TextPositionStripper;
 
 import com.silanis.esl.sdk.Document;
 import com.silanis.esl.sdk.DocumentPackage;
+import com.silanis.esl.sdk.Field;
 import com.silanis.esl.sdk.Signature;
 import com.silanis.esl.sdk.TextAnchor;
 import com.silanis.esl.sdk.TextAnchorPosition;
 
 public class DocumentPackageUtils {
 	protected static final Logger log = Logger.getLogger(DocumentPackageUtils.class.getName());
-	private static float ESL_SCALE = 1.3f;
+	private static float ESL_SCALE = 1.305f;
 	
-	private class StrippedPDFPage {
+	private static class StrippedPDFPage {
 		private int eSLPageNumber = 0;
 		private String pageOfText = "";
 		private ArrayList<TextPosition> textPositionDetails = new ArrayList<TextPosition>();
@@ -44,7 +45,7 @@ public class DocumentPackageUtils {
 		}
 	}
 
-	public DocumentPackage convertTextAnchorToXY(DocumentPackage pkg) {
+	public static DocumentPackage convertTextAnchorToXY(DocumentPackage pkg) {
 		try {
 			for(Document document : pkg.getDocuments()){
 				byte[] content = document.getContent();
@@ -77,10 +78,10 @@ public class DocumentPackageUtils {
 						
 						//We set the signature x-y coordinates by performing a client side extraction using PDFBox
 						TextPosition xyPosition = textAnchorCoordinateExtract(pages, anchorText, character, occurrence);
-						float x = xyPosition.getXDirAdj() + xOffset;
-						float charWidth = xyPosition.getWidthDirAdj();
-						float y = xyPosition.getYDirAdj() + yOffset;
-						float charHeight = xyPosition.getHeightDir();
+						double x = Math.floor(xyPosition.getXDirAdj()) + xOffset;
+						double charWidth = Math.floor(xyPosition.getWidthDirAdj());
+						double y = Math.floor(xyPosition.getYDirAdj()) + yOffset;
+						double charHeight = Math.floor(xyPosition.getFontSize());
 						
 						signature.setWidth(width);
 						signature.setHeight(height);
@@ -102,11 +103,56 @@ public class DocumentPackageUtils {
 							signature.setX((x+charWidth)*ESL_SCALE);
 							signature.setY((y-charHeight)*ESL_SCALE);
 						}
-						log.fine("position of anchor '"+anchorText+"' for character '"+xyPosition.getUnicode()+"' positionned "+position.toString()+" at (" + signature.getX() +", "+ + signature.getY()+")");
+						log.fine("position of anchor '"+anchorText+"' for character '"+xyPosition.getUnicode()+"' positionned "+position.toString()+" at (" + signature.getX() +", "+ + signature.getY()+") where character width="+charWidth+"*"+ESL_SCALE);	
 					}
 					//we remove the eSignLive text anchor
 					signature.setTextAnchor(null);
+					
+					for(Field field: signature.getFields()) {
+						TextAnchor fieldTextAnchor = field.getTextAnchor();
+						if(textAnchor != null){
+							String anchorText = fieldTextAnchor.getAnchorText();
+							int character = fieldTextAnchor.getCharacter();
+							int height = fieldTextAnchor.getHeight();
+							int occurrence = fieldTextAnchor.getOccurrence();
+							TextAnchorPosition position = fieldTextAnchor.getPosition();
+							int width = fieldTextAnchor.getWidth();
+							int xOffset = fieldTextAnchor.getXOffset();
+							int yOffset = fieldTextAnchor.getYOffset();
+							
+							//We set the signature x-y coordinates by performing a client side extraction using PDFBox
+							TextPosition xyPosition = textAnchorCoordinateExtract(pages, anchorText, character, occurrence);
+							double x = Math.floor(xyPosition.getXDirAdj()) + xOffset;
+							double charWidth = Math.floor(xyPosition.getWidthDirAdj());
+							double y = Math.floor(xyPosition.getYDirAdj()) + yOffset;
+							double charHeight = Math.floor(xyPosition.getFontSize());
+							
+							field.setWidth(width);
+							field.setHeight(height);
+							
+							if(position == TextAnchorPosition.BOTTOMLEFT){
+								field.setX(x*ESL_SCALE);
+								field.setY(y*ESL_SCALE);
+							}
+							else if(position == TextAnchorPosition.BOTTOMRIGHT){
+								field.setX((x+charWidth)*ESL_SCALE);
+								field.setY(y*ESL_SCALE);
+							}
+							else if(position == TextAnchorPosition.TOPLEFT){
+								field.setX(x*ESL_SCALE);
+								field.setY((y-charHeight)*ESL_SCALE);
+							}
+							else {
+								//TextAnchorPosition.TOPRIGHT
+								field.setX((x+charWidth)*ESL_SCALE);
+								field.setY((y-charHeight)*ESL_SCALE);
+							}
+							log.fine("position of anchor '"+anchorText+"' for character '"+xyPosition.getUnicode()+"' positionned "+position.toString()+" at (" + field.getX() +", "+ + field.getY()+") where character width="+charWidth+"*"+ESL_SCALE);	
+						}
+						field.setTextAnchor(null);
+					}
 				}
+				
 				//we disable extraction
 				document.setExtraction(false);
 				pdfDocument.close();
@@ -119,7 +165,7 @@ public class DocumentPackageUtils {
 	}
 	
 	//Get the XY coordinates per text anchor
-	private TextPosition textAnchorCoordinateExtract(ArrayList<StrippedPDFPage> pages, String anchorText, int character, int occurrence) {
+	private static TextPosition textAnchorCoordinateExtract(ArrayList<StrippedPDFPage> pages, String anchorText, int character, int occurrence) {
 		
 		ArrayList<TextPosition> coordinates = new ArrayList<TextPosition>();
 		for(StrippedPDFPage page: pages){

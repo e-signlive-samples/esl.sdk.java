@@ -9,6 +9,7 @@ import java.io.InputStream;
 
 import com.silanis.esl.sdk.DocumentPackage;
 import com.silanis.esl.sdk.DocumentType;
+import com.silanis.esl.sdk.SignatureId;
 import com.silanis.esl.sdk.TextAnchorPosition;
 import com.silanis.esl.sdk.builder.TextAnchorBuilder;
 import com.silanis.esl.sdk.util.DocumentPackageUtils;
@@ -40,6 +41,7 @@ public class DocumentPackageUtilsExample extends SDKSample {
                         .fromStream( documentInputStream1, DocumentType.PDF )
                         .enableExtraction()
                         .withSignature(signatureFor( email1 )
+                        		.withId(new SignatureId("BOTTOMRIGHT"))
                                 .withPositionAnchor( TextAnchorBuilder.newTextAnchor( "BOTTOMRIGHT" )
                                         .atPosition( TextAnchorPosition.BOTTOMRIGHT )
                                         .withSize( FIELD_WIDTH, FIELD_HEIGHT )
@@ -47,6 +49,7 @@ public class DocumentPackageUtilsExample extends SDKSample {
                                         .withCharacter( 0 )
                                         .withOccurence( 0 ) ) )
                         .withSignature(signatureFor( email1 )
+                        		.withId(new SignatureId("BOTTOMLEFT"))
                                 .withPositionAnchor( TextAnchorBuilder.newTextAnchor( "BOTTOMLEFT" )
                                         .atPosition( TextAnchorPosition.BOTTOMLEFT )
                                         .withSize( FIELD_WIDTH, FIELD_HEIGHT )
@@ -54,6 +57,7 @@ public class DocumentPackageUtilsExample extends SDKSample {
                                         .withCharacter( 0 )
                                         .withOccurence( 0 ) ) )
                         .withSignature(signatureFor( email1 )
+                        		.withId(new SignatureId("TOPRIGHT"))
                                 .withPositionAnchor( TextAnchorBuilder.newTextAnchor( "TOPRIGHT" )
                                         .atPosition( TextAnchorPosition.TOPRIGHT )
                                         .withSize( FIELD_WIDTH, FIELD_HEIGHT )
@@ -61,6 +65,7 @@ public class DocumentPackageUtilsExample extends SDKSample {
                                         .withCharacter( 0 )
                                         .withOccurence( 0 ) ) )
                         .withSignature(signatureFor( email1 )
+                        		.withId(new SignatureId("TOPLEFT"))
                                 .withPositionAnchor( TextAnchorBuilder.newTextAnchor( "TOPLEFT" )
                                         .atPosition( TextAnchorPosition.TOPLEFT )
                                         .withSize( FIELD_WIDTH, FIELD_HEIGHT )
@@ -70,8 +75,7 @@ public class DocumentPackageUtilsExample extends SDKSample {
                 )
                 .build();
 		
-		DocumentPackageUtils utils = new DocumentPackageUtils();
-		superDuperPackage = utils.convertTextAnchorToXY(superDuperPackage);
+		superDuperPackage = DocumentPackageUtils.convertTextAnchorToXY(superDuperPackage);
 
         packageId = eslClient.createPackage( superDuperPackage );
         eslClient.sendPackage( packageId );
